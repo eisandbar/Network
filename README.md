@@ -10,3 +10,4 @@ https://github.com/donnemartin/system-design-primer
 - Create LB, use several servers
 - Create balancer for db, use multiple db
 - Use cache
+- Kubernetes
