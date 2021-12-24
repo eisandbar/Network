@@ -1,0 +1,21 @@
+version: "3.7"
+services: 
+    server:
+        build: ./src/server
+        ports:
+            - "3333:3333"
+        volumes:
+            - ./:/app
+        networks:
+            - web-net
+    client:
+        build: ./src/client
+        volumes:
+            - ./:/app
+        ports:
+            - "3000:3333"
+        networks:
+            - web-net
+networks:
+    web-net:
+        driver: bridge
