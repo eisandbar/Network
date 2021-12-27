@@ -7,15 +7,35 @@ services:
         volumes:
             - ./:/app
         networks:
+            - db-net
             - web-net
+        environment:
+            POSTGRES_USER: pguser
+            POSTGRES_PASSWORD: secret
+            POSTGRES_DB: pgdb
+            POSTGRES_HOST: db
     client:
         build: ./src/client
         volumes:
             - ./:/app
-        ports:
-            - "3000:3333"
         networks:
             - web-net
+    db:
+        image: postgres
+        volumes:
+            - postgres:/var/lib/postgres
+        ports:
+            - "5432:5432"
+        networks:
+            - db-net
+        environment:
+            POSTGRES_USER: pguser
+            POSTGRES_PASSWORD: secret
+            POSTGRES_DB: pgdb
 networks:
     web-net:
+        driver: overlay
+    db-net:
         driver: bridge
+volumes:
+    postgres:
