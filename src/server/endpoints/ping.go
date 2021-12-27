@@ -7,6 +7,6 @@ import (
 )
 
 func Ping (w http.ResponseWriter, _ *http.Request) {
-	io.WriteString(w, "Hello from a HandleFunc\n")
+	io.WriteString(w, "Pinged server\n")
 	fmt.Println("Received message")
 }
