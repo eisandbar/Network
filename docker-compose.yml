@@ -1,7 +1,25 @@
 version: "3.7"
+
+
 services: 
+    nginx:
+        build:
+            context: ./nginx/
+            dockerfile: Dockerfile
+        depends_on:
+            - server
+        ports:
+            - "5100:5100"
+        networks:
+            web-net:
+                aliases:
+                    - api
+        restart: always
+    
     server:
         build: ./src/server
+        depends_on:
+            - db
         ports:
             - "3333:3333"
         volumes:
@@ -14,28 +32,37 @@ services:
             POSTGRES_PASSWORD: secret
             POSTGRES_DB: pgdb
             POSTGRES_HOST: db
+        restart: always
+    
     client:
         build: ./src/client
+        depends_on:
+            - server
         volumes:
             - ./:/app
         networks:
             - web-net
+        restart: always
+    
     db:
         image: postgres
         volumes:
             - postgres:/var/lib/postgres
-        ports:
-            - "5432:5432"
         networks:
             - db-net
+        restart: always
         environment:
             POSTGRES_USER: pguser
             POSTGRES_PASSWORD: secret
             POSTGRES_DB: pgdb
+
+
 networks:
     web-net:
         driver: overlay
     db-net:
         driver: bridge
+
+
 volumes:
     postgres:

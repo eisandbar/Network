@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	CONN_HOST = "server"
-	CONN_PORT = "3333"
+	CONN_HOST = "api"
+	CONN_PORT = "5100"
 )
 
 func main() {
