@@ -3,6 +3,7 @@ version: "3.7"
 
 services: 
     nginx:
+        image: eisandbar/network:nginx
         build:
             context: ./nginx/
             dockerfile: Dockerfile
@@ -17,11 +18,12 @@ services:
         restart: always
     
     server:
+        image: eisandbar/network:server
         build: ./src/server
+        deploy:
+            replicas: 3
         depends_on:
             - db
-        ports:
-            - "3333:3333"
         volumes:
             - ./:/app
         networks:
@@ -35,6 +37,7 @@ services:
         restart: always
     
     client:
+        image: eisandbar/network:client
         build: ./src/client
         depends_on:
             - server
@@ -60,8 +63,10 @@ services:
 networks:
     web-net:
         driver: overlay
+        attachable: true
     db-net:
-        driver: bridge
+        driver: overlay
+        attachable: true
 
 
 volumes:

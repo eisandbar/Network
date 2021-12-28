@@ -27,7 +27,7 @@ func main() {
     
     fmt.Println("Listening on port:", CONN_PORT)
 
-    log.Fatal(http.ListenAndServe(CONN_HOST + ":" + CONN_PORT, handler))
+    log.Fatal(http.ListenAndServe(":" + CONN_PORT, handler))
 }
 
 // Handles incoming requests.
