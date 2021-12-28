@@ -6,8 +6,8 @@ https://github.com/donnemartin/system-design-primer
 
 ### Plan
 - ~~Create basic server~~
-- Create db, connect to api
-- Create LB, use several servers
+- ~~Create db, connect to api~~
+- ~~Create LB, use several servers~~ (Nginx proxy)
 - Create balancer for db, use multiple db
 - Use cache
 - Kubernetes
