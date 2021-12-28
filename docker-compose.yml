@@ -1,9 +1,29 @@
 version: "3.7"
+
+
 services: 
-    server:
-        build: ./src/server
+    nginx:
+        image: eisandbar/network:nginx
+        build:
+            context: ./nginx/
+            dockerfile: Dockerfile
+        depends_on:
+            - server
         ports:
-            - "3333:3333"
+            - "5100:5100"
+        networks:
+            web-net:
+                aliases:
+                    - api
+        restart: always
+    
+    server:
+        image: eisandbar/network:server
+        build: ./src/server
+        deploy:
+            replicas: 3
+        depends_on:
+            - db
         volumes:
             - ./:/app
         networks:
@@ -14,28 +34,40 @@ services:
             POSTGRES_PASSWORD: secret
             POSTGRES_DB: pgdb
             POSTGRES_HOST: db
+        restart: always
+    
     client:
+        image: eisandbar/network:client
         build: ./src/client
+        depends_on:
+            - server
         volumes:
             - ./:/app
         networks:
             - web-net
+        restart: always
+    
     db:
         image: postgres
         volumes:
             - postgres:/var/lib/postgres
-        ports:
-            - "5432:5432"
         networks:
             - db-net
+        restart: always
         environment:
             POSTGRES_USER: pguser
             POSTGRES_PASSWORD: secret
             POSTGRES_DB: pgdb
+
+
 networks:
     web-net:
         driver: overlay
+        attachable: true
     db-net:
-        driver: bridge
+        driver: overlay
+        attachable: true
+
+
 volumes:
     postgres:
