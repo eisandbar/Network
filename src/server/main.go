@@ -22,7 +22,11 @@ func main() {
     router.HandleFunc("/ping", sep.Ping).Methods("GET")
     router.HandleFunc("/longQ", sep.LongQuery).Methods("GET")
     router.HandleFunc("/loadQ", sep.LoadQuery).Methods("GET")
-    router.HandleFunc("/pgQ/{id}", sep.PGQuery).Methods("GET")
+
+    // RESTful
+    router.HandleFunc("/users", sep.UserPost).Methods("POST") // signup
+    router.HandleFunc("/users/{id}", sep.UserDel).Methods("DELETE") // acc termination
+    router.HandleFunc("/users/{id}", sep.UserGet).Methods("GET") // get user data
     
     handler := cors.Default().Handler(router)
     
