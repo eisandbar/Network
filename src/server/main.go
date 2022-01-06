@@ -21,6 +21,7 @@ func main() {
 
     router.HandleFunc("/ping", sep.Ping).Methods("GET")
     router.HandleFunc("/longQ", sep.LongQuery).Methods("GET")
+    router.HandleFunc("/loadQ", sep.LoadQuery).Methods("GET")
     router.HandleFunc("/pgQ/{id}", sep.PGQuery).Methods("GET")
     
     handler := cors.Default().Handler(router)
