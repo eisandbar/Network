@@ -22,6 +22,10 @@ func main() {
 		} else {
 			go simpleGet("/longQ")
 		}
+
+		if rand.Float64() > 0.97 {
+			go simpleGet("/loadQ")
+		}
 	}
 }
 
