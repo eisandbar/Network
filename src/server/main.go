@@ -8,6 +8,7 @@ import (
     "github.com/gorilla/mux"
     "github.com/rs/cors"
     sep "polarion/network/src/server/endpoints"
+    db "polarion/network/src/server/db"
 )
 
 const (
@@ -17,6 +18,9 @@ const (
 )
 
 func main() {
+    // init db
+    db.InitDB()
+
     router := mux.NewRouter()
 
     router.HandleFunc("/ping", sep.Ping).Methods("GET")
