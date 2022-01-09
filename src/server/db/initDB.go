@@ -34,11 +34,12 @@ type User struct {
 	Username string
 	Email string
 	Password string
-	Id int64
+	Id int64 `gorm:"primaryKey"`
 	ProfileId int64
 }
 
 type Message struct {
+	Id int64 `gorm:"primaryKey"`
 	Text string
 	SenderId int64
 	Date time.Time
