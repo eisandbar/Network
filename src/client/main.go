@@ -13,7 +13,7 @@ import (
 
 func main() {
 	for {
-		time.Sleep(20 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 
 		// Simple queries
 		if rand.Float64() > 0.2 {
@@ -25,6 +25,12 @@ func main() {
 		}
 
 		go req.UserPost()
+		for i:=0; i<10; i++ {
+			go req.UserGet(rand.Intn(10000))
+		}
+		for i:=0; i<30; i++ {
+			go req.UserGet(rand.Intn(400)) // super users
+		}
 	}
 }
 
