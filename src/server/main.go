@@ -31,6 +31,7 @@ func main() {
     router.HandleFunc("/users", sep.UserPost).Methods("POST") // signup
     router.HandleFunc("/users/{id}", sep.UserDel).Methods("DELETE") // acc termination
     router.HandleFunc("/users/{id}", sep.UserGet).Methods("GET") // get user data
+    router.HandleFunc("/users/{id}/messages", sep.MessageGet).Methods("GET") // get user messages
     
     handler := cors.Default().Handler(router)
     

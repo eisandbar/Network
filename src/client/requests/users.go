@@ -60,6 +60,25 @@ func UserGet (id int) {
 	fmt.Printf("%s", body)
 }
 
+func MessageGet (id int) {
+	// Post request
+	resp, err := http.Get(conn.ConnStr + "/users/" + strconv.Itoa(id) + "/messages")
+	if err != nil {
+		log.Fatalf("Error Connecting: %v", err)
+	}
+	// Close body when the application closes.
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+
+	if resp.StatusCode > 299 {
+		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", resp.StatusCode, body)
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%s", body)
+}
+
 func Constructor () User {
 	var u User
 	l := 5 + rand.Intn(12)

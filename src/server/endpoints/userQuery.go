@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"io"
+	"time"
 	"encoding/json"
 	"net/http"
 	_ "github.com/lib/pq"
@@ -67,7 +68,7 @@ func UserDel (w http.ResponseWriter, r *http.Request) {
 }
 
 func UserGet (w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Received db query")
+	fmt.Println("Finding user")
 
 	db, err := gorm.Open("postgres", connStr)
 	if err != nil {
@@ -83,4 +84,31 @@ func UserGet (w http.ResponseWriter, r *http.Request) {
 	
 	json.NewEncoder(w).Encode(&user)
 	fmt.Println("Found user", user)
+}
+
+func MessageGet (w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Finding user messages")
+
+	db, err := gorm.Open("postgres", connStr)
+	if err != nil {
+		log.Fatalf("Error connecting to postgres: %v", err)
+	}
+	defer db.Close()
+
+	params := mux.Vars(r)
+	type Result struct {
+		Username string
+		Text string
+		Date time.Time
+	}
+	var results []Result
+	db.Model(&dbp.User{}).
+	Select("users.Username, messages.Text, messages.Date").
+	Joins("right join messages on messages.Sender_Id = users.Id").
+	Where("users.Id = ?", params["id"]).
+	Scan(&results)
+
+	
+	json.NewEncoder(w).Encode(&results)
+	fmt.Println("Found messages for user", results)
 }
