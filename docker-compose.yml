@@ -58,7 +58,16 @@ services:
             POSTGRES_USER: pguser
             POSTGRES_PASSWORD: secret
             POSTGRES_DB: pgdb
-
+    
+    redis:
+        image: eisandbar/network:redis
+        build:
+            context: ./redis/
+            dockerfile: Dockerfile
+        volumes:
+            - redis:/data
+        networks:
+            - db-net
 
 networks:
     web-net:
@@ -71,3 +80,4 @@ networks:
 
 volumes:
     postgres:
+    redis:
