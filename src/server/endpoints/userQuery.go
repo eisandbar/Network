@@ -11,6 +11,9 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
+
+	"context"
+	"github.com/go-redis/redis/v8"
 	dbp "polarion/network/src/server/db"
 )
 
@@ -27,6 +30,13 @@ var connStr = fmt.Sprintf("host=%s port=5432 user=%s dbname=%s password=%s sslmo
 	DB_NAME,
 	DB_PASSWORD,
 )
+
+var ropt = redis.Options{
+	Addr: "redis:6379",
+	Password: "",
+	DB: 0,
+}
+var ctx = context.Background()
 
 func UserPost (w http.ResponseWriter, r *http.Request) {
 	fmt.Println("User signup request")
@@ -69,21 +79,43 @@ func UserDel (w http.ResponseWriter, r *http.Request) {
 
 func UserGet (w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Finding user")
-
-	db, err := gorm.Open("postgres", connStr)
-	if err != nil {
-		log.Fatalf("Error connecting to postgres: %v", err)
-	}
-	defer db.Close()
-
-	params := mux.Vars(r)
   
 	var user dbp.User
-  
-	db.First(&user, params["id"])
+	params := mux.Vars(r)
 	
-	json.NewEncoder(w).Encode(&user)
-	fmt.Println("Found user", user)
+	// check redis cache
+	rdb := redis.NewClient(&ropt)
+	val, err := rdb.Get(ctx, "id" + params["id"]).Result()
+	if err == redis.Nil {  // Key not found
+
+		// Search postgres db
+		db, err := gorm.Open("postgres", connStr)
+		if err != nil {
+			log.Fatalf("Error connecting to postgres: %v", err)
+		}
+		defer db.Close()
+  
+		db.First(&user, params["id"])
+		json, err := json.Marshal(user)
+		if err != nil {
+			log.Fatalf("Error converting to json")
+		}
+
+		// Add to rdb
+		err = rdb.Set(ctx, "id" + params["id"], json, 120*time.Second).Err()
+		if err != nil {
+			log.Fatalf("Error saving to cache: %v", err)
+		}
+
+		// sending response
+		fmt.Fprintf(w, string(json))
+
+	} else if err != nil {
+		log.Fatalf("Error getting from cache: %v", err)
+
+	} else {
+		fmt.Fprintf(w, val)
+	}
 }
 
 func MessageGet (w http.ResponseWriter, r *http.Request) {
