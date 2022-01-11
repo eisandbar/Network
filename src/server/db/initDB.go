@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"time"
-	"strconv"
 	_ "github.com/lib/pq"
 	"github.com/jinzhu/gorm"
 )
@@ -28,13 +27,6 @@ func InitDB () {
 	db.AutoMigrate(&User{})
   	db.AutoMigrate(&Message{})
 
-	for i:=0; i<(1<<11); i++ {
-		db.Create(&User{
-			Username: strconv.Itoa(i),
-			Id: int64(i),
-		})
-	}
-
 	fmt.Println("Postgres DB initialized")
 }
 
@@ -42,11 +34,12 @@ type User struct {
 	Username string
 	Email string
 	Password string
-	Id int64
+	Id int64 `gorm:"primaryKey"`
 	ProfileId int64
 }
 
 type Message struct {
+	Id int64 `gorm:"primaryKey"`
 	Text string
 	SenderId int64
 	Date time.Time

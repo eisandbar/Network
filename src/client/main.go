@@ -7,31 +7,36 @@ import (
 	"time"
 	"io"
 	"math/rand"
-)
-
-const (
-	CONN_HOST = "api"
-	CONN_PORT = "5100"
+	conn "polarion/network/src/client/util"
+	req "polarion/network/src/client/requests"
 )
 
 func main() {
 	for {
-		time.Sleep(2 * time.Second)
+		time.Sleep(200 * time.Millisecond)
+
+		// Simple queries
 		if rand.Float64() > 0.2 {
 			go simpleGet("/ping")
-		} else {
+		}
+
+		if rand.Float64() > 0.5 {
 			go simpleGet("/longQ")
 		}
 
-		if rand.Float64() > 0.97 {
-			go simpleGet("/loadQ")
+		go req.UserPost()
+		for i:=0; i<10; i++ {
+			go req.UserGet(rand.Intn(10000))
+		}
+		for i:=0; i<30; i++ {
+			go req.UserGet(rand.Intn(400)) // super users
 		}
 	}
 }
 
 func simpleGet(ep string) {
 	// Get request
-	resp, err := http.Get("http://" + CONN_HOST + ":" + CONN_PORT + ep)
+	resp, err := http.Get(conn.ConnStr + ep)
 	if err != nil {
 		log.Fatalf("Error Connecting: %v", err)
 	}
