@@ -85,6 +85,8 @@ func UserGet (w http.ResponseWriter, r *http.Request) {
 	
 	// check redis cache
 	rdb := redis.NewClient(&ropt)
+	defer rdb.Close()
+
 	val, err := rdb.Get(ctx, "id" + params["id"]).Result()
 	if err == redis.Nil {  // Key not found
 
