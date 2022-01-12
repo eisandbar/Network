@@ -15,6 +15,9 @@ services:
             web-net:
                 aliases:
                     - api
+        mem_limit: 16m
+        mem_reservation: 16m
+        cpus: 0.125
         restart: always
     
     server:
@@ -22,6 +25,13 @@ services:
         build: ./src/server
         deploy:
             replicas: 3
+            resources:
+                limits:
+                    cpus: "0.25"
+                    memory: 64M
+                reservations:
+                    cpus: "0.125"
+                    memory: 32M
         depends_on:
             - db
         volumes:
@@ -45,6 +55,9 @@ services:
             - ./:/app
         networks:
             - web-net
+        mem_limit: 32m
+        mem_reservation: 16m
+        cpus: 0.125
         restart: always
     
     db:
@@ -53,6 +66,9 @@ services:
             - postgres:/var/lib/postgres
         networks:
             - db-net
+        mem_limit: 64m
+        mem_reservation: 32m
+        cpus: 0.25
         restart: always
         environment:
             POSTGRES_USER: pguser
@@ -68,6 +84,9 @@ services:
             - redis:/data
         networks:
             - db-net
+        mem_limit: 32m
+        mem_reservation: 16m
+        cpus: 0.125
 
 networks:
     web-net:
