@@ -2,19 +2,34 @@ version: "3.7"
 
 
 services: 
+    haproxy:
+        image: eisandbar/network:haproxy
+        build:
+            context: ./haproxy/
+            dockerfile: Dockerfile
+        depends_on:
+            - nginx
+        ports:
+            - "5100:5100"
+        networks:
+            external:
+            web-net:       
+        mem_limit: 16m
+        mem_reservation: 16m
+        cpus: 0.125
+        restart: always
+
     nginx:
         image: eisandbar/network:nginx
         build:
             context: ./nginx/
             dockerfile: Dockerfile
+        deploy:
+            replicas: 2
         depends_on:
             - server
-        ports:
-            - "5100:5100"
         networks:
             web-net:
-                aliases:
-                    - api
         mem_limit: 16m
         mem_reservation: 16m
         cpus: 0.125
@@ -50,11 +65,11 @@ services:
         image: eisandbar/network:client
         build: ./src/client
         depends_on:
-            - server
+            - haproxy
         volumes:
             - ./:/app
         networks:
-            - web-net
+            - external
         mem_limit: 32m
         mem_reservation: 16m
         cpus: 0.125
@@ -89,6 +104,9 @@ services:
         cpus: 0.125
 
 networks:
+    external:
+        driver: overlay
+        attachable: true
     web-net:
         driver: overlay
         attachable: true
