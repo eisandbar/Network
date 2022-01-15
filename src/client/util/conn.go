@@ -1,7 +1,7 @@
 package conn
 
 const (
-	CONN_HOST = "api"
+	CONN_HOST = "network_haproxy_1"
 	CONN_PORT = "5100"
 )
 
