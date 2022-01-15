@@ -12,7 +12,10 @@ import (
 )
 
 func main() {
-	for {
+	for true {
+		
+	}
+	for false {
 		time.Sleep(200 * time.Millisecond)
 
 		// Simple queries
