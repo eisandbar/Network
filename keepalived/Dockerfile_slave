@@ -1,0 +1,5 @@
+FROM osixia/keepalived:2.0.20
+USER root
+COPY keepalived_slave.conf /usr/local/etc/keepalived/keepalived.conf
+RUN chmod 644 /usr/local/etc/keepalived/keepalived.conf
+COPY notify.sh /container/service/keepalived/assets/notify.custom.sh
