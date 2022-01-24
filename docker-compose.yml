@@ -45,6 +45,7 @@ services:
             context: ./keepalived/ 
             dockerfile: Dockerfile_master
         network_mode: host
+        profiles: ["master"]
         
     haproxy_slave:
         <<: *default-mem2
@@ -60,6 +61,7 @@ services:
             context: ./keepalived/ 
             dockerfile: Dockerfile_slave
         network_mode: host
+        profiles: ["slave"]
 
     nginx:        
         <<: *default-mem2
