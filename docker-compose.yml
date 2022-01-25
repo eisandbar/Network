@@ -1,37 +1,87 @@
 version: "3.7"
 
+x-mem: &default-mem
+    mem_limit: 16m
+    mem_reservation: 16m
+    cpus: 0.125
+    restart: always
+
+x-mem2: &default-mem2
+    mem_limit: 64m
+    mem_reservation: 32m
+    cpus: 0.25
+    restart: always
+
+x-haproxy: &haproxy
+    image: eisandbar/network:haproxy
+    build:
+        context: ./haproxy/
+        dockerfile: Dockerfile
+    depends_on:
+        - nginx
+
+x-keepalived: &keepalived
+    image: eisandbar/network:keepalived
+    cap_add:
+        - NET_ADMIN
+        - NET_BROADCAST
+        - NET_RAW
+    depends_on:
+        - haproxy_slave
+        - haproxy_master
 
 services: 
-    nginx:
+    haproxy_master:
+        <<: *default-mem2
+        <<: *haproxy
+        networks:
+            web-net:
+                ipv4_address: "172.20.1.20"
+
+    keepalived_master:
+        <<: *default-mem2
+        <<: *keepalived
+        build:
+            context: ./keepalived/ 
+            dockerfile: Dockerfile_master
+        network_mode: host
+        profiles: ["master"]
+        
+    haproxy_slave:
+        <<: *default-mem2
+        <<: *haproxy
+        networks:
+            web-net:
+                ipv4_address: "172.20.1.30"
+
+    keepalived_slave:
+        <<: *default-mem2
+        <<: *keepalived
+        build:
+            context: ./keepalived/ 
+            dockerfile: Dockerfile_slave
+        network_mode: host
+        profiles: ["slave"]
+
+    nginx:        
+        <<: *default-mem2
         image: eisandbar/network:nginx
         build:
             context: ./nginx/
             dockerfile: Dockerfile
+        deploy:
+            replicas: 2
         depends_on:
             - server
-        ports:
-            - "5100:5100"
         networks:
             web-net:
-                aliases:
-                    - api
-        mem_limit: 16m
-        mem_reservation: 16m
-        cpus: 0.125
-        restart: always
     
-    server:
+    server:        
+        <<: *default-mem2
         image: eisandbar/network:server
         build: ./src/server
         deploy:
             replicas: 3
-            resources:
-                limits:
-                    cpus: "0.25"
-                    memory: 64M
-                reservations:
-                    cpus: "0.125"
-                    memory: 32M
         depends_on:
             - db
         volumes:
@@ -44,38 +94,32 @@ services:
             POSTGRES_PASSWORD: secret
             POSTGRES_DB: pgdb
             POSTGRES_HOST: db
-        restart: always
     
     client:
+        # <<: *default-mem
         image: eisandbar/network:client
         build: ./src/client
         depends_on:
-            - server
+            - haproxy_master
+            - haproxy_slave
         volumes:
             - ./:/app
-        networks:
-            - web-net
-        mem_limit: 32m
-        mem_reservation: 16m
-        cpus: 0.125
-        restart: always
+        network_mode: host
     
     db:
+        # <<: *default-mem2
         image: postgres
         volumes:
             - postgres:/var/lib/postgres
         networks:
             - db-net
-        mem_limit: 64m
-        mem_reservation: 32m
-        cpus: 0.25
-        restart: always
         environment:
             POSTGRES_USER: pguser
             POSTGRES_PASSWORD: secret
             POSTGRES_DB: pgdb
     
     redis:
+        # <<: *default-mem
         image: eisandbar/network:redis
         build:
             context: ./redis/
@@ -84,17 +128,14 @@ services:
             - redis:/data
         networks:
             - db-net
-        mem_limit: 32m
-        mem_reservation: 16m
-        cpus: 0.125
 
 networks:
     web-net:
-        driver: overlay
-        attachable: true
+        ipam:
+            config:
+                - subnet: 172.20.0.0/16
     db-net:
-        driver: overlay
-        attachable: true
+        driver: bridge
 
 
 volumes:
