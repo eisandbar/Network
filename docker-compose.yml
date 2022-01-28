@@ -1,9 +1,11 @@
 version: "3.7"
+# Profiles: master, slave, client
+
 
 x-mem: &default-mem
     mem_limit: 16m
     mem_reservation: 16m
-    cpus: 0.125
+    cpus: 0.1
     restart: always
 
 x-mem2: &default-mem2
@@ -102,17 +104,21 @@ services:
         depends_on:
             - rabbitmq
         deploy:
-            replicas: 4
+            replicas: 3
         networks:
             - web-net
     
     client:
-        <<: *default-mem
+        <<: *default-mem2
         image: eisandbar/network:client
         build: ./src/client
         depends_on:
+            - keepalived_master
             - haproxy_master
             - haproxy_slave
+        
+        deploy:
+            replicas: 3
         network_mode: host
         profiles: ["client"]
     
@@ -120,7 +126,10 @@ services:
         <<: *default-mem2
         image: postgres
         volumes:
-            - postgres:/var/lib/postgres
+            - ./postgres/conf/my-postgres.conf:/etc/postgresql/postgresql.conf
+            - ./postgres/data:/var/lib/postgresql/data
+        
+        command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
         networks:
             - db-net
         environment:
@@ -140,7 +149,7 @@ services:
             - db-net
 
     rabbitmq:
-        # <<: *default-mem2
+        <<: *default-mem2
         build:
             context: ./rabbit/
             dockerfile: Dockerfile
