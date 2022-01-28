@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 	"io"
+	"strconv"
 	"math/rand"
 	conn "polarion/network/src/client/util"
 	req "polarion/network/src/client/requests"
@@ -13,22 +14,21 @@ import (
 
 func main() {
 	for true {
-		time.Sleep(200 * time.Millisecond)
+		time.Sleep(400 * time.Millisecond)
 
 		// Simple queries
-		if rand.Float64() > 0.2 {
-			go simpleGet("/ping")
-		}
+		go simpleGet("/ping")
+		go simpleGet("/longQ")
 
-		if rand.Float64() > 0.5 {
-			go simpleGet("/longQ")
-		}
+		// // MQ queries
+		num := rand.Intn(7) + 31
+		go simpleGet("/loadQ/" + strconv.Itoa(num))
 
+		// REST API queries
 		go req.UserPost()
-		for i:=0; i<10; i++ {
-			go req.UserGet(rand.Intn(10000))
-		}
-		for i:=0; i<30; i++ {
+		go req.UserGet(rand.Intn(10000))
+		go req.UserGet(rand.Intn(10000))
+		for i:=0; i<4; i++ {
 			go req.UserGet(rand.Intn(400)) // super users
 		}
 	}
@@ -38,14 +38,16 @@ func simpleGet(ep string) {
 	// Get request
 	resp, err := http.Get(conn.ConnStr + ep)
 	if err != nil {
-		log.Fatalf("Error Connecting: %v", err)
+		fmt.Printf("Error Connecting: %v", err)
+		return
 	}
 	// Close body when the application closes.
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 
 	if resp.StatusCode > 299 {
-		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", resp.StatusCode, body)
+		fmt.Printf("Response failed with status code: %d and\nbody: %s\n", resp.StatusCode, body)
+		return
 	}
 	if err != nil {
 		log.Fatal(err)
