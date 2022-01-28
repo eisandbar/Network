@@ -6,6 +6,7 @@ import (
 	"os"
 	"io"
 	"time"
+	"errors"
 	"encoding/json"
 	"net/http"
 	_ "github.com/lib/pq"
@@ -96,8 +97,13 @@ func UserGet (w http.ResponseWriter, r *http.Request) {
 			log.Fatalf("Error connecting to postgres: %v", err)
 		}
 		defer db.Close()
-  
-		db.First(&user, params["id"])
+
+		err = db.First(&user, params["id"]).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			fmt.Fprintln(w, "User not found")
+			return
+		}
+
 		json, err := json.Marshal(user)
 		if err != nil {
 			log.Fatalf("Error converting to json")
@@ -111,6 +117,7 @@ func UserGet (w http.ResponseWriter, r *http.Request) {
 
 		// sending response
 		fmt.Fprintf(w, string(json))
+		fmt.Fprintf(w, "\n")
 
 	} else if err != nil {
 		log.Fatalf("Error getting from cache: %v", err)

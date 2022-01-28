@@ -1,14 +1,16 @@
 version: "3.7"
+# Profiles: master, slave, client
+
 
 x-mem: &default-mem
     mem_limit: 16m
     mem_reservation: 16m
-    cpus: 0.125
+    cpus: 0.1
     restart: always
 
 x-mem2: &default-mem2
-    mem_limit: 64m
-    mem_reservation: 32m
+    mem_limit: 256m
+    mem_reservation: 64m
     cpus: 0.25
     restart: always
 
@@ -94,23 +96,40 @@ services:
             POSTGRES_PASSWORD: secret
             POSTGRES_DB: pgdb
             POSTGRES_HOST: db
+
+    worker:
+        <<: *default-mem2
+        image: eisnadbar/network:worker
+        build: ./src/worker
+        depends_on:
+            - rabbitmq
+        deploy:
+            replicas: 3
+        networks:
+            - web-net
     
     client:
-        # <<: *default-mem
+        <<: *default-mem2
         image: eisandbar/network:client
         build: ./src/client
         depends_on:
+            - keepalived_master
             - haproxy_master
             - haproxy_slave
-        volumes:
-            - ./:/app
+        
+        deploy:
+            replicas: 3
         network_mode: host
+        profiles: ["client"]
     
     db:
-        # <<: *default-mem2
+        <<: *default-mem2
         image: postgres
         volumes:
-            - postgres:/var/lib/postgres
+            - ./postgres/conf/my-postgres.conf:/etc/postgresql/postgresql.conf
+            - ./postgres/data:/var/lib/postgresql/data
+        
+        command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
         networks:
             - db-net
         environment:
@@ -119,7 +138,7 @@ services:
             POSTGRES_DB: pgdb
     
     redis:
-        # <<: *default-mem
+        <<: *default-mem
         image: eisandbar/network:redis
         build:
             context: ./redis/
@@ -128,6 +147,19 @@ services:
             - redis:/data
         networks:
             - db-net
+
+    rabbitmq:
+        <<: *default-mem2
+        build:
+            context: ./rabbit/
+            dockerfile: Dockerfile
+        environment:
+            RABBITMQ_ERLANG_COOKIE: SWQOKODSQALRPCLNMEQG
+            RABBITMQ_DEFAULT_USER: user
+            RABBITMQ_DEFAULT_PASS: pass
+            RABBITMQ_DEFAULT_VHOST: /
+        networks:
+            - web-net
 
 networks:
     web-net:

@@ -25,7 +25,7 @@ func main() {
 
     router.HandleFunc("/ping", sep.Ping).Methods("GET")
     router.HandleFunc("/longQ", sep.LongQuery).Methods("GET")
-    router.HandleFunc("/loadQ", sep.LoadQuery).Methods("GET")
+    router.HandleFunc("/loadQ/{num}", sep.LoadQueryRPC).Methods("GET")
 
     // RESTful
     router.HandleFunc("/users", sep.UserPost).Methods("POST") // signup
