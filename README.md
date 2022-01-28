@@ -14,6 +14,6 @@ https://github.com/donnemartin/system-design-primer
 - ~~Better Load balancer~~
 - ~~Limit container resources~~
 - Something that checks server load, query response times (can use docker stats for now)
-- Message queue (for large tasks that can be done in ||)
+- ~~Message queue (for large tasks that can be done in ||)~~
 - Kubernetes
 - Create balancer for db, use multiple db
