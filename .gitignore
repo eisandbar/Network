@@ -1,1 +1,3 @@
 /bin
+/postgres/data
+/postgres/data-slave
