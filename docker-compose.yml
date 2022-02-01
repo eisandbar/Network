@@ -127,8 +127,24 @@ services:
         image: postgres
         volumes:
             - ./postgres/conf/my-postgres.conf:/etc/postgresql/postgresql.conf
+            - ./postgres/conf/pg_hba.conf:/etc/postgresql/pg_hba.conf
             - ./postgres/data:/var/lib/postgresql/data
         
+        command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+        networks:
+            - db-net
+        environment:
+            POSTGRES_USER: pguser
+            POSTGRES_PASSWORD: secret
+            POSTGRES_DB: pgdb
+
+    db-slave:
+        <<: *default-mem2
+        image: postgres
+        volumes:
+            - ./postgres/conf/my-postgres.conf:/etc/postgresql/postgresql.conf
+            - ./postgres/conf/pg_hba.conf:/etc/postgresql/pg_hba.conf
+            - ./postgres/data-slave:/var/lib/postgresql/data
         command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
         networks:
             - db-net
