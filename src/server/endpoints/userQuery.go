@@ -3,7 +3,6 @@ package endpoints
 import (
 	"fmt"
 	"log"
-	"os"
 	"io"
 	"time"
 	"errors"
@@ -18,20 +17,6 @@ import (
 	dbp "polarion/network/src/server/db"
 )
 
-var (
-	HOST = os.Getenv("POSTGRES_HOST")
-	USER = os.Getenv("POSTGRES_USER")
-	DB_NAME = os.Getenv("POSTGRES_DB")
-	DB_PASSWORD = os.Getenv("POSTGRES_PASSWORD")
-)
-
-var connStr = fmt.Sprintf("host=%s port=5432 user=%s dbname=%s password=%s sslmode=disable", 
-	HOST,
-	USER,
-	DB_NAME,
-	DB_PASSWORD,
-)
-
 var ropt = redis.Options{
 	Addr: "redis:6379",
 	Password: "",
@@ -42,7 +27,7 @@ var ctx = context.Background()
 func UserPost (w http.ResponseWriter, r *http.Request) {
 	fmt.Println("User signup request")
 
-	db, err := gorm.Open("postgres", connStr)
+	db, err := gorm.Open("postgres", dbp.WriteConnStr)
 	if err != nil {
 		log.Fatalf("Error connecting to postgres: %v", err)
 	}
@@ -64,7 +49,7 @@ func UserPost (w http.ResponseWriter, r *http.Request) {
 
 func UserDel (w http.ResponseWriter, r *http.Request) {
 	fmt.Println("User termination request")
-	db, err := gorm.Open("postgres", connStr)
+	db, err := gorm.Open("postgres", dbp.WriteConnStr)
 	if err != nil {
 		log.Fatalf("Error connecting to postgres: %v", err)
 	}
@@ -92,7 +77,7 @@ func UserGet (w http.ResponseWriter, r *http.Request) {
 	if err == redis.Nil {  // Key not found
 
 		// Search postgres db
-		db, err := gorm.Open("postgres", connStr)
+		db, err := gorm.Open("postgres", dbp.ReadConnStr)
 		if err != nil {
 			log.Fatalf("Error connecting to postgres: %v", err)
 		}
@@ -130,7 +115,7 @@ func UserGet (w http.ResponseWriter, r *http.Request) {
 func MessageGet (w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Finding user messages")
 
-	db, err := gorm.Open("postgres", connStr)
+	db, err := gorm.Open("postgres", dbp.ReadConnStr)
 	if err != nil {
 		log.Fatalf("Error connecting to postgres: %v", err)
 	}
