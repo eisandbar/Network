@@ -6,14 +6,13 @@ x-mem: &default-mem
     mem_limit: 16m
     mem_reservation: 16m
     cpus: 0.1
-    restart: always
+    restart: on-failure
 
 x-mem2: &default-mem2
     mem_limit: 256m
     mem_reservation: 64m
     cpus: 0.25
-    restart: always
-
+    restart: on-failure
 x-haproxy: &haproxy
     image: eisandbar/network:haproxy
     build:
@@ -86,6 +85,7 @@ services:
             replicas: 3
         depends_on:
             - db
+            - redis
         volumes:
             - ./:/app
         networks:
@@ -96,6 +96,7 @@ services:
             POSTGRES_PASSWORD: secret
             POSTGRES_DB: pgdb
             POSTGRES_HOST: db
+            LB_HOST: db-lb
 
     worker:
         <<: *default-mem2
@@ -153,6 +154,17 @@ services:
             POSTGRES_PASSWORD: secret
             POSTGRES_DB: pgdb
     
+    db-lb:
+        <<: *default-mem2
+        build:
+            context: ./postgres/haproxy/
+            dockerfile: Dockerfile
+        depends_on:
+            - db
+            - db-slave
+        networks:
+            - db-net
+
     redis:
         <<: *default-mem
         image: eisandbar/network:redis
