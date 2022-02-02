@@ -10,15 +10,29 @@ import (
 )
 
 var (
+	LB_HOST = os.Getenv("LB_HOST")
 	HOST = os.Getenv("POSTGRES_HOST")
 	USER = os.Getenv("POSTGRES_USER")
 	DB_NAME = os.Getenv("POSTGRES_DB")
 	DB_PASSWORD = os.Getenv("POSTGRES_PASSWORD")
 )
 
+var WriteConnStr = fmt.Sprintf("host=%s port=5432 user=%s dbname=%s password=%s sslmode=disable", 
+	HOST,
+	USER,
+	DB_NAME,
+	DB_PASSWORD,
+)
+
+var ReadConnStr = fmt.Sprintf("host=%s port=5432 user=%s dbname=%s password=%s sslmode=disable", 
+LB_HOST,
+USER,
+DB_NAME,
+DB_PASSWORD,
+)
+
 func InitDB () {
-	connStr := "host=db port=5432 user=pguser dbname=pgdb password=secret sslmode=disable"
-	db, err := gorm.Open("postgres", connStr)
+	db, err := gorm.Open("postgres", WriteConnStr)
 	if err != nil {
 		log.Fatalf("Error connecting to postgres: %v", err)
 	}
